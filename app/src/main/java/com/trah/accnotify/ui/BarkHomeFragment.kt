@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -73,6 +75,8 @@ class BarkHomeFragment : Fragment() {
         binding.btnEditServer.setOnClickListener { showEditServerDialog() }
         binding.btnCopyExample.setOnClickListener { copyExampleUrl() }
         binding.btnTestPush.setOnClickListener { sendTestPush() }
+        updateThemeToggleIcon()
+        binding.btnThemeToggle.setOnClickListener { toggleNightMode() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -85,17 +89,17 @@ class BarkHomeFragment : Fragment() {
                             WebSocketRuntimeState.STOPPED -> R.string.websocket_status_stopped
                         }
                     )
-                    val dotColor = when (status.webSocketState) {
+                    val statusColor = when (status.webSocketState) {
                         WebSocketRuntimeState.CONNECTED -> R.color.status_connected
-                        WebSocketRuntimeState.CONNECTING,
-                        WebSocketRuntimeState.RECONNECTING -> R.color.status_connecting
+                        WebSocketRuntimeState.CONNECTING -> R.color.status_connecting
+                        WebSocketRuntimeState.RECONNECTING -> R.color.status_error
                         WebSocketRuntimeState.STOPPED -> R.color.status_disconnected
                     }
-                    binding.statusDot.setColorFilter(
-                        androidx.core.content.ContextCompat.getColor(
-                            requireContext(), dotColor
-                        )
+                    val resolvedStatusColor = androidx.core.content.ContextCompat.getColor(
+                        requireContext(), statusColor
                     )
+                    binding.statusDot.setColorFilter(resolvedStatusColor)
+                    binding.tvConnectionStatus.setTextColor(resolvedStatusColor)
                     binding.tvLsposedStatus.setText(
                         if (status.systemServerBound) {
                             R.string.system_server_status_bound
@@ -234,6 +238,31 @@ class BarkHomeFragment : Fragment() {
                     Toast.makeText(requireContext(), "发送失败：${it.message}", Toast.LENGTH_LONG).show()
                 }
         }
+    }
+
+    private fun isNightMode(): Boolean =
+        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    /** Moon in light mode (tap to go dark), sun in dark mode (tap to go light). */
+    private fun updateThemeToggleIcon() {
+        binding.btnThemeToggle.setImageResource(
+            if (isNightMode()) {
+                R.drawable.ic_fluent_weather_sunny
+            } else {
+                R.drawable.ic_fluent_weather_moon
+            }
+        )
+    }
+
+    private fun toggleNightMode() {
+        val mode = if (isNightMode()) {
+            AppCompatDelegate.MODE_NIGHT_NO
+        } else {
+            AppCompatDelegate.MODE_NIGHT_YES
+        }
+        prefs.nightMode = mode
+        AppCompatDelegate.setDefaultNightMode(mode)
     }
 
     private fun register() {

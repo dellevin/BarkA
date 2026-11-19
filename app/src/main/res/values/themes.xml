@@ -10,9 +10,10 @@
         <item name="android:radioButtonStyle">@style/Widget.Accnotify.RadioButton</item>
         <item name="checkboxStyle">@style/Widget.Accnotify.CheckBox</item>
         <!-- Color Scheme -->
-        <item name="colorPrimary">@color/clean_primary</item>
+        <!-- Neutral primary keeps nav/dialogs monochrome; brand red lives in clean_primary. -->
+        <item name="colorPrimary">@color/clean_text_primary</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <!-- Monochrome container roles so the FAB and nav indicator stay black/white. -->
+        <!-- Brand-red container for the FAB only. -->
         <item name="colorPrimaryContainer">@color/clean_primary</item>
         <item name="colorOnPrimaryContainer">@color/bark_on_primary</item>
         <item name="colorSecondaryContainer">@color/clean_divider</item>
@@ -51,34 +52,33 @@
         <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <!-- Toolbar Style -->
-    <style name="Theme.Accnotify.Toolbar" parent="Widget.Material3.Toolbar">
-        <item name="android:background">@color/surface</item>
-        <item name="titleTextColor">@color/text_primary</item>
+    <!-- Isolated palette for app-owned native dialogs and date pickers. -->
+    <style name="Theme.Accnotify.AppDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_app_dialog_surface</item>
+        <item name="android:colorBackground">@color/bark_component_bg</item>
+        <item name="android:colorBackgroundFloating">@color/bark_component_bg</item>
+        <item name="android:textColorPrimary">@color/bark_component_text</item>
+        <item name="android:textColorSecondary">@color/bark_component_text_secondary</item>
+        <item name="android:colorAccent">@color/bark_component_text</item>
+        <item name="colorPrimary">@color/bark_component_text</item>
+        <item name="colorOnPrimary">@color/bark_component_bg</item>
+        <item name="colorSurface">@color/bark_component_bg</item>
+        <item name="colorOnSurface">@color/bark_component_text</item>
+        <item name="colorOnSurfaceVariant">@color/bark_component_text_secondary</item>
+        <item name="colorOutline">@color/bark_component_control_border</item>
+        <item name="colorOutlineVariant">@color/bark_component_control_border</item>
     </style>
 
-    <!-- iOS-Style Bottom Navigation -->
-    <style name="Theme.Accnotify.BottomNav" parent="Widget.Material3.BottomNavigationView">
-        <item name="android:background">@color/bottom_nav_background</item>
-        <item name="itemIconSize">@dimen/icon_size</item>
-        <item name="itemIconTint">@color/bottom_nav_selector</item>
-        <item name="itemTextColor">@color/bottom_nav_selector</item>
-        <item name="itemActiveIndicatorStyle">@style/App.BottomNavIndicator</item>
-        <item name="labelVisibilityMode">labeled</item>
-        <item name="itemPaddingTop">8dp</item>
-        <item name="itemPaddingBottom">8dp</item>
-    </style>
-
-    <!-- Candy-style Pill Indicator for Bottom Navigation -->
+    <!-- mooknote dock active indicator: 62x46 rounded-22 pill, surfaceContainerHighest -->
     <style name="App.BottomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:width">64dp</item>
-        <item name="android:height">36dp</item>
-        <item name="android:color">?attr/colorSecondaryContainer</item>
+        <item name="android:width">62dp</item>
+        <item name="android:height">46dp</item>
+        <item name="android:color">@color/bark_dock_indicator</item>
         <item name="shapeAppearance">@style/ShapeAppearance.BottomNavIndicator</item>
     </style>
 
     <style name="ShapeAppearance.BottomNavIndicator" parent="ShapeAppearance.Material3.Corner.Full">
-        <item name="cornerSize">18dp</item>
+        <item name="cornerSize">22dp</item>
     </style>
 
 </resources>

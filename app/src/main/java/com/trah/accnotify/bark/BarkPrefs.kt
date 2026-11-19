@@ -2,6 +2,7 @@ package com.trah.accnotify.bark
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
 import java.util.UUID
 
 /**
@@ -43,10 +44,10 @@ class BarkPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_REGISTERED, false)
         set(value) = prefs.edit().putBoolean(KEY_REGISTERED, value).apply()
 
-    /** Whether the persistent service shows a low-priority foreground notification. */
-    var showForegroundNotification: Boolean
-        get() = prefs.getBoolean(KEY_SHOW_FOREGROUND, true)
-        set(value) = prefs.edit().putBoolean(KEY_SHOW_FOREGROUND, value).apply()
+    /** AppCompatDelegate night mode; follows the system until the user toggles it. */
+    var nightMode: Int
+        get() = prefs.getInt(KEY_NIGHT_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        set(value) = prefs.edit().putInt(KEY_NIGHT_MODE, value).apply()
 
     /** True when the client has everything required to open a connection. */
     fun isReady(): Boolean = serverUrl.isNotEmpty() && registered && deviceKey.isNotEmpty()
@@ -64,6 +65,6 @@ class BarkPrefs(context: Context) {
         private const val KEY_DEVICE_TOKEN = "device_token"
         private const val KEY_DEVICE_KEY = "device_key"
         private const val KEY_REGISTERED = "registered"
-        private const val KEY_SHOW_FOREGROUND = "show_foreground_notification"
+        private const val KEY_NIGHT_MODE = "night_mode"
     }
 }

@@ -1,22 +1,16 @@
 package com.trah.accnotify.bark
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.trah.accnotify.AccnotifyApp
-import com.trah.accnotify.R
 import com.trah.accnotify.data.Message
 import com.trah.accnotify.status.RuntimeStatusStore
 import com.trah.accnotify.status.WebSocketRuntimeState
-import com.trah.accnotify.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,7 +24,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /**
@@ -70,7 +63,6 @@ class BarkPushService : Service() {
     override fun onCreate() {
         super.onCreate()
         prefs = BarkPrefs(this)
-        startForeground(NOTIFICATION_ID, buildForegroundNotification("连接中…"))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -116,7 +108,6 @@ class BarkPushService : Service() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 wsConnected = true
                 RuntimeStatusStore.updateWebSocket(WebSocketRuntimeState.CONNECTED)
-                updateForeground("运行中 · WebSocket")
                 Log.i(TAG, "WebSocket connected")
             }
 
@@ -138,7 +129,6 @@ class BarkPushService : Service() {
         if (!running) return
         wsConnected = false
         RuntimeStatusStore.updateWebSocket(WebSocketRuntimeState.RECONNECTING)
-        updateForeground("运行中 · 长轮询")
         Log.w(TAG, "WebSocket unavailable ($reason), relying on long poll")
         // Reconnect the socket; the poll loop covers the gap meanwhile.
         scope.launch {
@@ -259,43 +249,14 @@ class BarkPushService : Service() {
         runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }
     }
 
-    private fun buildForegroundNotification(status: String): Notification {
-        val pi = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        return NotificationCompat.Builder(this, AccnotifyApp.CHANNEL_SERVICE)
-            .setContentTitle(getString(R.string.service_notification_title))
-            .setContentText(status)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentIntent(pi)
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setShowWhen(false)
-            .setSilent(true)
-            .build()
-    }
-
-    private fun updateForeground(status: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            manager.notify(NOTIFICATION_ID, buildForegroundNotification(status))
-        }
-    }
-
     companion object {
         private const val TAG = "BarkPushService"
-        private const val NOTIFICATION_ID = 2
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
 
         fun start(context: Context) {
-            val intent = Intent(context, BarkPushService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
+            // Plain started service: the LSPosed system_server bridge keeps the
+            // process alive, so no foreground notification is required.
+            context.startService(Intent(context, BarkPushService::class.java))
         }
     }
 }

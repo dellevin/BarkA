@@ -7,28 +7,45 @@
     android:background="?android:colorBackground"
     tools:context=".ui.MainActivity">
 
+    <!-- Content extends to the screen bottom; the dock floats over it. -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
+    <!-- mooknote-style floating dock: surface pill, icon-only, sliding indicator -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/navDock"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minHeight="56dp"
-        android:background="?attr/colorSurface"
-        app:itemIconTint="@color/bottom_nav_selector"
-        app:itemTextColor="@color/bottom_nav_selector"
-        app:itemActiveIndicatorStyle="@style/App.BottomNavIndicator"
-        app:itemPaddingTop="@dimen/spacing_small"
-        app:itemPaddingBottom="@dimen/spacing_small"
-        app:elevation="8dp"
-        app:labelVisibilityMode="unlabeled"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="@color/bark_component_bg"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="8dp"
+        app:cardForegroundColor="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/bark_component_border"
+        app:strokeWidth="1dp">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigation"
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            android:background="@android:color/transparent"
+            app:backgroundTint="@android:color/transparent"
+            app:itemActiveIndicatorStyle="@style/App.BottomNavIndicator"
+            app:itemIconTint="@color/dock_icon_selector"
+            app:itemIconSize="24dp"
+            app:itemPaddingBottom="0dp"
+            app:itemPaddingTop="0dp"
+            app:itemTextColor="@color/dock_icon_selector"
+            app:labelVisibilityMode="unlabeled"
+            app:menu="@menu/bottom_nav_menu" />
+
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

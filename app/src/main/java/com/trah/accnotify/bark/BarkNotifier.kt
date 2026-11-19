@@ -86,7 +86,7 @@ object BarkNotifier {
     }
 
     private fun buildTitle(payload: BarkPayload): String {
-        val main = payload.title?.takeIf { it.isNotEmpty() } ?: "Bark"
+        val main = payload.title?.takeIf { it.isNotEmpty() } ?: "BarkA"
         val subtitle = payload.subtitle?.takeIf { it.isNotEmpty() }
         return if (subtitle != null) "$main · $subtitle" else main
     }
@@ -148,7 +148,7 @@ object BarkNotifier {
                 NotificationChannel(
                     CHANNEL_PASSIVE, "静默通知", NotificationManager.IMPORTANCE_LOW
                 ).apply {
-                    description = "Bark passive 级别：仅入库，不响铃亮屏"
+                    description = "BarkA 静默级别：仅入库，不响铃亮屏"
                     setShowBadge(true)
                 }
             )

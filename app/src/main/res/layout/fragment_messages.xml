@@ -10,36 +10,35 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Header -->
+        <!-- Compact header: large title, capsule filters, pill search -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/spacing_card"
-            android:paddingTop="@dimen/spacing_card"
-            android:paddingBottom="@dimen/spacing_control">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="历史消息"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="历史消息"
-                    android:textSize="@dimen/text_heading"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <TextView
                     android:id="@+id/btnTimeFilter"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/spacing_small"
-                    android:background="@drawable/bg_clean_input"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_bark_chip"
                     android:clickable="true"
                     android:ellipsize="end"
                     android:focusable="true"
@@ -47,68 +46,60 @@
                     android:gravity="center"
                     android:maxLines="1"
                     android:maxWidth="120dp"
-                    android:minHeight="@dimen/control_height"
-                    android:paddingHorizontal="@dimen/spacing_control"
-                    android:paddingVertical="@dimen/control_padding_vertical"
+                    android:paddingHorizontal="12dp"
                     android:text="时间筛选"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="@dimen/text_control" />
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp" />
 
                 <TextView
-
-                    android:paddingVertical="@dimen/control_padding_vertical"
-
-                    android:minHeight="@dimen/control_height"
                     android:id="@+id/btnGroupFilter"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxWidth="160dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:paddingHorizontal="@dimen/spacing_control"
-                    android:text="全部分组"
-                    android:textSize="@dimen/text_control"
-                    android:textColor="?attr/colorPrimary"
-                    android:background="@drawable/bg_clean_input"
-                    android:foreground="?attr/selectableItemBackground"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_bark_chip"
                     android:clickable="true"
-                    android:focusable="true" />
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:maxWidth="160dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="全部分组"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
-            <!-- Search Bar -->
+            <!-- Search pill -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="@dimen/control_height"
-                android:layout_marginTop="@dimen/spacing_gap"
-                android:background="@drawable/bg_clean_input"
+                android:layout_height="36dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_bark_chip"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="@dimen/spacing_control">
+                android:paddingHorizontal="12dp">
 
                 <ImageView
-                    android:layout_width="@dimen/icon_size"
-                    android:layout_height="@dimen/icon_size"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
                     android:src="@drawable/ic_fluent_search"
                     app:tint="?attr/colorOnSurfaceVariant" />
 
                 <EditText
-
-                    android:minHeight="@dimen/control_height"
                     android:id="@+id/etSearch"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_small"
                     android:background="@android:color/transparent"
                     android:hint="搜索消息..."
-                    android:textColorHint="?attr/colorOnSurfaceVariant"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="@dimen/text_control"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
@@ -132,7 +123,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingBottom="80dp" />
+                android:paddingTop="4dp"
+                android:paddingBottom="96dp" />
 
             <TextView
                 android:id="@+id/tvEmpty"
@@ -141,11 +133,10 @@
                 android:layout_gravity="center"
                 android:text="暂无消息"
                 android:textColor="@color/clean_text_secondary"
-                android:textSize="@dimen/text_option_title"
+                android:textSize="14sp"
                 android:visibility="gone" />
 
         </FrameLayout>
-
 
     </LinearLayout>
 
@@ -154,12 +145,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/spacing_gap"
-        app:backgroundTint="?attr/colorPrimaryContainer"
-        app:tint="?attr/colorOnPrimaryContainer"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="88dp"
         android:contentDescription="清空历史"
-        app:srcCompat="@drawable/ic_fluent_delete" />
+        app:backgroundTint="?attr/colorPrimaryContainer"
+        app:srcCompat="@drawable/ic_fluent_delete"
+        app:tint="?attr/colorOnPrimaryContainer" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-

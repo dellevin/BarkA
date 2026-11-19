@@ -54,7 +54,11 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = MessageAdapter(requireContext()) { message -> showMessageDetailDialog(message) }
+        adapter = MessageAdapter(
+            requireContext(),
+            onItemClick = { message -> showMessageDetailDialog(message) },
+            onDelete = { message -> deleteMessage(message) }
+        )
         setupUI()
         observeMessages()
     }
@@ -101,14 +105,10 @@ class MessagesFragment : Fragment() {
         val options = listOf<String?>(null) + groups
         val ctx = requireContext()
         val density = resources.displayMetrics.density
-        val surface = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorSurface)
-        val textColor = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorOnSurface)
-        val accent = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorPrimary)
-        val outline = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorOutlineVariant)
+        val surface = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_bg)
+        val textColor = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_text)
+        val accent = textColor
+        val outline = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_control_border)
         val popup = androidx.appcompat.widget.ListPopupWindow(ctx).apply {
             anchorView = binding.btnGroupFilter
             isModal = true
@@ -189,64 +189,78 @@ class MessagesFragment : Fragment() {
         })
     }
 
+    private fun deleteMessage(message: Message) {
+        adapter.closeReveal()
+        adapter.removeMessage(message.messageId)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                AccnotifyApp.getInstance().database.messageDao().delete(message.messageId)
+                context?.let { NotificationHelper.cancelNotification(it, message.messageId) }
+                context?.let { Toast.makeText(it, "消息已删除", Toast.LENGTH_SHORT).show() }
+            } catch (_: Exception) {
+                if (_binding != null) {
+                    filterMessages(binding.etSearch.text.toString())
+                    Toast.makeText(context, "删除失败，请重试", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     private fun setupSwipeDelete() {
-        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        val revealWidth = (76 * resources.displayMetrics.density)
+        // True while a drag is active; scroll events during a horizontal swipe must
+        // not close the reveal (tiny vertical finger jitter otherwise retracts it).
+        var swiping = false
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             override fun onMove(recyclerView: RecyclerView, source: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder) = false
 
-            override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder) = 0.5f
-
-            // A quick short fling should not bypass the swipe distance threshold.
+            // Never auto-complete a swipe: the card must stay on screen so the
+            // revealed delete button can be tapped explicitly.
+            override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder) = 2f
             override fun getSwipeEscapeVelocity(defaultValue: Float) = Float.MAX_VALUE
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
-                if (position == RecyclerView.NO_POSITION) return
-                val message = adapter.messageAt(position) ?: return
-                adapter.removeMessage(message.messageId)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    try {
-                        AccnotifyApp.getInstance().database.messageDao().delete(message.messageId)
-                        context?.let { NotificationHelper.cancelNotification(it, message.messageId) }
-                        context?.let { Toast.makeText(it, "消息已删除", Toast.LENGTH_SHORT).show() }
-                    } catch (_: Exception) {
-                        if (_binding != null) {
-                            filterMessages(binding.etSearch.text.toString())
-                            Toast.makeText(context, "删除失败，请重试", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
+
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                swiping = actionState == ItemTouchHelper.ACTION_STATE_SWIPE
+                if (swiping && viewHolder is MessageAdapter.ViewHolder) {
+                    adapter.openHolder?.takeIf { it != viewHolder }?.let { adapter.closeReveal() }
                 }
             }
 
             override fun onChildDraw(canvas: android.graphics.Canvas, recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float,
                 actionState: Int, isCurrentlyActive: Boolean) {
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX != 0f) {
-                    val item = viewHolder.itemView
-                    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-                    paint.color = com.google.android.material.color.MaterialColors.getColor(item,
-                        com.google.android.material.R.attr.colorError)
-                    val left = if (dX > 0) item.left.toFloat() else (item.right + dX).coerceAtLeast(item.left.toFloat())
-                    val right = if (dX > 0) (item.left + dX).coerceAtMost(item.right.toFloat()) else item.right.toFloat()
-                    val radius = (item as? com.google.android.material.card.MaterialCardView)?.radius
-                        ?: 12 * item.resources.displayMetrics.density
-                    canvas.drawRoundRect(left, item.top.toFloat(), right, item.bottom.toFloat(), radius, radius, paint)
-                    paint.color = com.google.android.material.color.MaterialColors.getColor(item,
-                        com.google.android.material.R.attr.colorOnError)
-                    paint.textSize = item.resources.getDimension(com.trah.accnotify.R.dimen.text_body)
-                    val padding = 24 * item.resources.displayMetrics.density
-                    paint.textAlign = if (dX > 0) android.graphics.Paint.Align.LEFT else android.graphics.Paint.Align.RIGHT
-                    val x = if (dX > 0) item.left + padding else item.right - padding
-                    val y = (item.top + item.bottom) / 2f - (paint.ascent() + paint.descent()) / 2f
-                    val saved = canvas.save()
-                    canvas.clipRect(left, item.top.toFloat(), right, item.bottom.toFloat())
-                    canvas.drawText("删除", x, y, paint)
-                    canvas.restoreToCount(saved)
+                if (actionState != ItemTouchHelper.ACTION_STATE_SWIPE) return
+                val holder = viewHolder as? MessageAdapter.ViewHolder ?: return
+                // Follow the finger only while dragging. After release ItemTouchHelper runs
+                // its own recover animation whose dX drifts back to 0; ignore those frames
+                // so the card stays put and clearView() can snap it open or closed.
+                if (isCurrentlyActive) {
+                    holder.contentView.translationX = dX.coerceIn(-revealWidth, 0f)
                 }
-                super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+                val holder = viewHolder as? MessageAdapter.ViewHolder ?: return
+                // ItemTouchHelper has already crossed touch slop before a swipe starts.
+                // Keep any released left swipe open; dragging fully back to zero still closes it.
+                val reveal = holder.contentView.translationX < 0f
+                val target = if (reveal) -revealWidth else 0f
+                holder.contentView.animate().translationX(target).setDuration(180).start()
+                adapter.markOpen(if (reveal) holder else null)
             }
         }
         ItemTouchHelper(callback).attachToRecyclerView(binding.recyclerView)
+        // Scrolling away hides a revealed button, but never while a swipe is in progress.
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (!swiping && (dx != 0 || dy != 0)) adapter.closeReveal()
+            }
+        })
     }
 
     private fun currentTimeRange(): Pair<Long?, Long?> {
@@ -302,6 +316,7 @@ class MessagesFragment : Fragment() {
         val calendar = Calendar.getInstance()
         android.app.DatePickerDialog(
             requireContext(),
+            R.style.Theme_Accnotify_AppDialog,
             { _, startYear, startMonth, startDay ->
                 val start = Calendar.getInstance().apply {
                     set(startYear, startMonth, startDay, 0, 0, 0)
@@ -309,6 +324,7 @@ class MessagesFragment : Fragment() {
                 }.timeInMillis
                 android.app.DatePickerDialog(
                     requireContext(),
+                    R.style.Theme_Accnotify_AppDialog,
                     { _, endYear, endMonth, endDay ->
                         val endExclusive = Calendar.getInstance().apply {
                             set(endYear, endMonth, endDay, 0, 0, 0)
@@ -352,6 +368,7 @@ class MessagesFragment : Fragment() {
         val calendar = Calendar.getInstance()
         android.app.DatePickerDialog(
             requireContext(),
+            R.style.Theme_Accnotify_AppDialog,
             { _, year, month, day ->
                 val cutoff = Calendar.getInstance().apply {
                     set(year, month, day, 0, 0, 0)
@@ -385,14 +402,10 @@ class MessagesFragment : Fragment() {
     private fun showRadioPopup(anchor: View, options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
         val ctx = requireContext()
         val density = resources.displayMetrics.density
-        val surface = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorSurface)
-        val textColor = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorOnSurface)
-        val accent = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorPrimary)
-        val outline = com.google.android.material.color.MaterialColors.getColor(binding.root,
-            com.google.android.material.R.attr.colorOutlineVariant)
+        val surface = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_bg)
+        val textColor = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_text)
+        val accent = textColor
+        val outline = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_control_border)
         val popup = androidx.appcompat.widget.ListPopupWindow(ctx).apply {
             anchorView = anchor
             isModal = true
@@ -506,7 +519,7 @@ class MessagesFragment : Fragment() {
 
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         
-        tvTitle.text = message.title ?: "Accnotify"
+        tvTitle.text = message.title ?: "BarkA"
         tvTime.text = dateFormat.format(message.timestamp)
         
         // 格式化消息内容（使用 Markwon 渲染 Markdown，启用 SoftBreak 保留换行，启用链接点击）
@@ -886,7 +899,7 @@ class MessagesFragment : Fragment() {
      */
     private fun showImageOptionsDialog(bitmap: android.graphics.Bitmap) {
         val items = arrayOf("保存到相册", "分享图片")
-        AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext(), R.style.Theme_Accnotify_AppDialog)
             .setTitle("图片操作")
             .setItems(items) { _, which ->
                 when (which) {
@@ -1020,9 +1033,14 @@ class MessagesFragment : Fragment() {
 
     private class MessageAdapter(
         context: Context,
-        private val onItemClick: (Message) -> Unit
+        private val onItemClick: (Message) -> Unit,
+        private val onDelete: (Message) -> Unit
     ) : RecyclerView.Adapter<MessageAdapter.ViewHolder>() {
         private var messages: List<Message> = emptyList()
+
+        /** The holder whose delete button is currently revealed; at most one at a time. */
+        var openHolder: ViewHolder? = null
+            private set
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         private val previewMarkwon = Markwon.builder(context)
             .usePlugin(SoftBreakAddsNewLinePlugin.create())
@@ -1048,6 +1066,16 @@ class MessagesFragment : Fragment() {
             notifyItemRemoved(index)
         }
 
+        fun markOpen(holder: ViewHolder?) {
+            openHolder = holder
+        }
+
+        /** Slides any revealed card back and clears the open state. */
+        fun closeReveal() {
+            openHolder?.let { it.contentView.animate().translationX(0f).setDuration(180).start() }
+            openHolder = null
+        }
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_message, parent, false)
@@ -1061,13 +1089,18 @@ class MessagesFragment : Fragment() {
         override fun getItemCount(): Int = messages.size
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val contentView: View = itemView.findViewById(R.id.cardContent)
             private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
             private val tvBody: TextView = itemView.findViewById(R.id.tvBody)
             private val tvTime: TextView = itemView.findViewById(R.id.tvTime)
             private val ivThumbnail: android.widget.ImageView = itemView.findViewById(R.id.ivThumbnail)
+            private val btnDeleteReveal: View = itemView.findViewById(R.id.btnDeleteReveal)
 
             fun bind(message: Message) {
-                tvTitle.text = message.title ?: "Accnotify"
+                // Recycled views must start hidden regardless of their previous swipe state.
+                contentView.translationX = 0f
+                if (openHolder === this@ViewHolder) openHolder = null
+                tvTitle.text = message.title ?: "BarkA"
                 previewMarkwon.setMarkdown(tvBody, message.body.orEmpty())
                 // 预览中的链接也由整张卡片打开详情，避免抢占列表点击。
                 tvBody.movementMethod = null
@@ -1137,10 +1170,15 @@ class MessagesFragment : Fragment() {
                     ivThumbnail.visibility = View.GONE
                 }
                 
-                // 点击查看详情
-                itemView.setOnClickListener {
-                    onItemClick(message)
+                // 点击查看详情；卡片处于露出状态时先关闭，不打开详情。
+                contentView.setOnClickListener {
+                    if (contentView.translationX != 0f) {
+                        closeReveal()
+                    } else {
+                        onItemClick(message)
+                    }
                 }
+                btnDeleteReveal.setOnClickListener { onDelete(message) }
             }
         }
     }

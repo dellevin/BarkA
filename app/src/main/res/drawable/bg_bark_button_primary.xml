@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Monochrome filled button: black in light mode, white in dark mode. -->
+<!-- Brand-red filled button, white text via bark_on_primary. -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#338E8E93">
     <item>

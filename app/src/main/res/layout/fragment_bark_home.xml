@@ -11,58 +11,78 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="96dp">
 
-        <!-- Large title + live status, Bark-style header -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bark"
-            android:textColor="?attr/colorOnBackground"
-            android:textSize="34sp"
-            android:textStyle="bold" />
-
+        <!-- Header: title on the left, live connection state on the right -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/statusDot"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:contentDescription="@null"
-                android:src="@drawable/bg_bark_dot" />
-
             <TextView
-                android:id="@+id/tvConnectionStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="BarkA"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnThemeToggle"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="10dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="切换亮色/暗色"
+                android:focusable="true"
+                android:padding="6dp"
+                android:src="@drawable/ic_fluent_weather_moon" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/websocket_status_stopped"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/statusDot"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/bg_bark_dot" />
+
+                <TextView
+                    android:id="@+id/tvConnectionStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/websocket_status_stopped"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvLsposedStatus"
             android:layout_width="wrap_content"
+            android:layout_gravity="end"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:text="@string/system_server_status_unbound"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <!-- 未注册：填写服务器地址即可注册 -->
         <LinearLayout
             android:id="@+id/registerContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="16dp"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -70,48 +90,49 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
                 android:text="服务器地址"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_bark_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="12dp">
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="https://bark.example.com"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusTopStart="12dp">
+                    app:boxCornerRadiusBottomEnd="10dp"
+                    app:boxCornerRadiusBottomStart="10dp"
+                    app:boxCornerRadiusTopEnd="10dp"
+                    app:boxCornerRadiusTopStart="10dp">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etServerUrl"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textUri"
-                        android:maxLines="1" />
+                        android:maxLines="1"
+                        android:textSize="13sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
                     android:id="@+id/btnRegister"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
                     android:background="@drawable/bg_bark_button_primary"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
                     android:text="注册设备"
                     android:textColor="@color/bark_on_primary"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <ProgressBar
@@ -120,26 +141,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/tvRegisterError"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
                     android:textColor="@color/status_error"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 已注册：服务器与设备 Key 分组卡片 -->
+        <!-- 已注册：服务器与设备 Key 合并为一张分组卡片 -->
         <LinearLayout
             android:id="@+id/readyContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="16dp"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -147,84 +168,103 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:layout_marginBottom="8dp"
-                android:text="服务器"
+                android:layout_marginBottom="6dp"
+                android:text="设备信息"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp" />
-
-            <LinearLayout
-                android:id="@+id/btnEditServer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_bark_card"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:minHeight="54dp"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:id="@+id/tvServerUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp" />
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="修改服务器地址"
-                    android:src="@drawable/ic_fluent_chevron_right"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
-                android:text="设备 KEY"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_bark_card"
-                android:gravity="center_vertical"
-                android:minHeight="54dp"
-                android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="8dp">
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvDeviceKey"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="middle"
-                    android:fontFamily="monospace"
-                    android:maxLines="1"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textIsSelectable="true"
-                    android:textSize="15sp" />
-
-                <ImageView
-                    android:id="@+id/btnCopyKey"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                <!-- 服务器行：整行可点修改 -->
+                <LinearLayout
+                    android:id="@+id/btnEditServer"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
                     android:clickable="true"
-                    android:contentDescription="复制设备 Key"
                     android:focusable="true"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_fluent_copy"
-                    app:tint="@color/clean_primary" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp">
+
+                    <TextView
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:text="服务器"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvServerUrl"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="13sp" />
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="修改服务器地址"
+                        android:src="@drawable/ic_fluent_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="14dp"
+                    android:background="@color/clean_divider" />
+
+                <!-- 设备 Key 行 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="6dp">
+
+                    <TextView
+                        android:layout_width="72dp"
+                        android:layout_height="wrap_content"
+                        android:text="设备 KEY"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvDeviceKey"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="middle"
+                        android:fontFamily="monospace"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textIsSelectable="true"
+                        android:textSize="13sp" />
+
+                    <ImageView
+                        android:id="@+id/btnCopyKey"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="复制设备 Key"
+                        android:focusable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_fluent_copy"
+                        app:tint="@color/clean_primary" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- 使用示例：可复制、可直接发测试推送 -->
@@ -232,18 +272,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"
                 android:text="使用示例"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_bark_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="12dp">
 
                 <TextView
                     android:id="@+id/tvExampleUrl"
@@ -252,18 +292,18 @@
                     android:fontFamily="monospace"
                     android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/btnCopyExample"
                         android:layout_width="0dp"
-                        android:layout_height="46dp"
+                        android:layout_height="40dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_bark_button_secondary"
                         android:clickable="true"
@@ -271,13 +311,13 @@
                         android:gravity="center"
                         android:text="复制链接"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/btnTestPush"
                         android:layout_width="0dp"
-                        android:layout_height="46dp"
-                        android:layout_marginStart="12dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_bark_button_primary"
                         android:clickable="true"
@@ -285,7 +325,7 @@
                         android:gravity="center"
                         android:text="发送测试"
                         android:textColor="@color/bark_on_primary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -295,15 +335,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="14dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="8dp"
                 android:text="重置注册"
                 android:textColor="@color/status_error"
-                android:textSize="14sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
     </LinearLayout>

@@ -1,65 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Root stays still while the foreground card slides; the delete area lives underneath. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/Widget.Accnotify.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/spacing_gap"
-    android:layout_marginVertical="@dimen/spacing_small">
+    android:layout_marginHorizontal="@dimen/spacing_page"
+    android:layout_marginVertical="3dp">
 
+    <!-- Revealed delete button -->
     <LinearLayout
+        android:id="@+id/btnDeleteReveal"
+        android:layout_width="76dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/bg_delete_reveal"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_fluent_delete"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="删除"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Foreground card: the only part that moves -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/spacing_card">
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="false"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/text_caption" />
+
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="0dp"
+                android:id="@+id/tvBody"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="@dimen/text_option_title"
-                android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/text_body" />
 
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/text_caption"
-                android:textColor="?attr/colorOnSurfaceVariant" />
+            <ImageView
+                android:id="@+id/ivThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="96dp"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="true"
+                android:background="@drawable/bg_bark_thumb"
+                android:clipToOutline="true"
+                android:contentDescription="消息图片"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvBody"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_small"
-            android:textSize="@dimen/text_body"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:maxLines="3"
-            android:ellipsize="end" />
+    </com.google.android.material.card.MaterialCardView>
 
-        <ImageView
-            android:id="@+id/ivThumbnail"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:layout_marginTop="@dimen/spacing_small"
-            android:scaleType="centerCrop"
-            android:adjustViewBounds="true"
-            android:visibility="gone"
-            android:background="@drawable/bg_clean_input"
-            android:contentDescription="消息图片" />
-
-    </LinearLayout>
-
-</com.google.android.material.card.MaterialCardView>
-
+</FrameLayout>

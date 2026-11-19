@@ -9,6 +9,7 @@ import java.net.URL
 
 object NotificationImageLoader {
     private const val MAX_BYTES = 8 * 1024 * 1024
+    private const val MAX_REDIRECTS = 5
 
     fun load(source: String): Bitmap? = try {
         val bytes = if (source.startsWith("https://") || source.startsWith("http://")) {
@@ -32,26 +33,39 @@ object NotificationImageLoader {
     }
 
     private fun download(source: String): ByteArray {
-        val connection = URL(source).openConnection() as HttpURLConnection
-        try {
-            connection.connectTimeout = 5000
-            connection.readTimeout = 5000
-            connection.setRequestProperty("Accept", "image/*")
-            require(connection.responseCode == HttpURLConnection.HTTP_OK)
-            require(connection.contentLengthLong <= MAX_BYTES)
-            return connection.inputStream.use { input ->
-                val output = ByteArrayOutputStream()
-                val buffer = ByteArray(8192)
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count < 0) break
-                    require(output.size() + count <= MAX_BYTES)
-                    output.write(buffer, 0, count)
+        // HttpURLConnection refuses cross-protocol redirects (http -> https),
+        // which hosts like day.app rely on, so follow every hop manually.
+        var url = URL(source)
+        repeat(MAX_REDIRECTS) {
+            val connection = url.openConnection() as HttpURLConnection
+            try {
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.instanceFollowRedirects = false
+                connection.setRequestProperty("Accept", "image/*")
+                val code = connection.responseCode
+                if (code in 300..399) {
+                    val location = connection.getHeaderField("Location") ?: return@repeat
+                    url = URL(url, location)
+                    return@repeat
                 }
-                output.toByteArray()
+                require(code == HttpURLConnection.HTTP_OK)
+                require(connection.contentLengthLong <= MAX_BYTES)
+                return connection.inputStream.use { input ->
+                    val output = ByteArrayOutputStream()
+                    val buffer = ByteArray(8192)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        require(output.size() + count <= MAX_BYTES)
+                        output.write(buffer, 0, count)
+                    }
+                    output.toByteArray()
+                }
+            } finally {
+                connection.disconnect()
             }
-        } finally {
-            connection.disconnect()
         }
+        throw IllegalStateException("too many redirects")
     }
 }

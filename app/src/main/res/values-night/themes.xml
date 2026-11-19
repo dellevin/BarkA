@@ -10,9 +10,10 @@
         <item name="android:radioButtonStyle">@style/Widget.Accnotify.RadioButton</item>
         <item name="checkboxStyle">@style/Widget.Accnotify.CheckBox</item>
         <!-- Color Scheme -->
-        <item name="colorPrimary">@color/clean_primary</item>
+        <!-- Neutral primary keeps nav/dialogs monochrome; brand red lives in clean_primary. -->
+        <item name="colorPrimary">@color/clean_text_primary</item>
         <item name="colorOnPrimary">#000000</item>
-        <!-- Monochrome container roles so the FAB stays black/white. -->
+        <!-- Brand-red container for the FAB only. -->
         <item name="colorPrimaryContainer">@color/clean_primary</item>
         <item name="colorOnPrimaryContainer">@color/bark_on_primary</item>
         <item name="colorSecondaryContainer">@color/clean_divider</item>
@@ -49,24 +50,6 @@
         <!-- Navigation Bar -->
         <item name="android:navigationBarColor">@color/clean_bg</item>
         <item name="android:windowLightNavigationBar">false</item>
-    </style>
-
-    <!-- Toolbar Style (Dark) -->
-    <style name="Theme.Accnotify.Toolbar" parent="Widget.Material3.Toolbar">
-        <item name="android:background">@color/surface</item>
-        <item name="titleTextColor">@color/text_primary</item>
-    </style>
-
-    <!-- iOS-Style Bottom Navigation (Dark) -->
-    <style name="Theme.Accnotify.BottomNav" parent="Widget.Material3.BottomNavigationView">
-        <item name="android:background">@color/bottom_nav_background</item>
-        <item name="itemIconSize">@dimen/icon_size</item>
-        <item name="itemIconTint">@color/bottom_nav_selector</item>
-        <item name="itemTextColor">@color/bottom_nav_selector</item>
-        <item name="itemActiveIndicatorStyle">@null</item>
-        <item name="labelVisibilityMode">labeled</item>
-        <item name="itemPaddingTop">8dp</item>
-        <item name="itemPaddingBottom">8dp</item>
     </style>
 
 </resources>

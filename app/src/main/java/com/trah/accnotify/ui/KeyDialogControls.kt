@@ -3,6 +3,7 @@ package com.trah.accnotify.ui
 import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
@@ -69,10 +70,9 @@ internal object KeyDialogControls {
             .topMargin = gap
         val actions = view.findViewById<View>(R.id.btnPositive).parent as View
         (actions.layoutParams as ViewGroup.MarginLayoutParams).topMargin = 0
-        val color = MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimary)
+        // Shared component colors follow the active light or dark resource set.
+        val color = ContextCompat.getColor(context, R.color.bark_component_text)
         val size = context.resources.getDimensionPixelSize(R.dimen.action_touch_size)
-        val attr = TypedValue()
-        context.theme.resolveAttribute(android.R.attr.selectableItemBackground, attr, true)
         for (id in listOf(R.id.btnNegative, R.id.btnPositive)) {
             view.findViewById<TextView>(id).apply {
                 setTextColor(color)
@@ -80,7 +80,7 @@ internal object KeyDialogControls {
                 isFocusable = true
                 minHeight = size
                 layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                setBackgroundResource(attr.resourceId)
+                setBackgroundResource(R.drawable.bg_md3_text_button)
             }
         }
     }

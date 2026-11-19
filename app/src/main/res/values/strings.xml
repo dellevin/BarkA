@@ -1,23 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Accnotify</string>
-    <string name="notification_channel_name">通知服务</string>
-    <string name="notification_channel_description">WebSocket 连接保活</string>
-    <string name="service_notification_title">Accnotify 运行中</string>
-    <string name="accessibility_description">用于维持 Accnotify 后台运行稳定性，开启后系统将不会轻易杀死本应用。</string>
-    <string name="official_server_disclaimer_title">官方服务器使用声明</string>
-    <string name="official_server_disclaimer_message">您正在使用官方服务器 https://an.trah.cn。\n\n运营者不主动查看或使用您发送的消息内容。消息内容及发送行为由发送者负责，与运营者无关。\n\n为完成投递和断线补发，服务器会临时保存消息：收到客户端确认后立即删除；未确认的消息在 5 分钟后失效并自动清理。服务器只保留推送数量统计，不长期保存消息内容。\n\n确认后，本设备不再重复提醒。</string>
-    <string name="official_server_disclaimer_accept">我已阅读并同意</string>
-    <string name="official_server_disclaimer_decline">暂不使用</string>
-    <string name="keep_alive_restricted_settings_hint">由于国产系统的限制，建议开启无障碍保活，如果不开也能用自然最好</string>
-    <string name="runtime_status_title">运行状态</string>
-    <string name="xposed_status_inactive">Xposed 模块：未检测到</string>
-    <string name="xposed_status_active">Xposed 模块：已激活</string>
+    <string name="app_name">BarkA</string>
     <string name="system_server_status_unbound">system_server：未绑定</string>
     <string name="system_server_status_bound">system_server：已绑定</string>
     <string name="websocket_status_stopped">WebSocket：未运行</string>
     <string name="websocket_status_connecting">WebSocket：连接中</string>
     <string name="websocket_status_connected">WebSocket：已连接</string>
     <string name="websocket_status_reconnecting">WebSocket：正在重连</string>
-    <string name="bark_status_long_poll">连接：长轮询兜底中</string>
+    <string name="bark_status_long_poll">HTTP长连接</string>
 </resources>

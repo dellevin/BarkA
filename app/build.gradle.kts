@@ -102,7 +102,6 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
 
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
@@ -120,7 +119,6 @@ dependencies {
 
     // Markwon for Markdown rendering
     implementation("io.noties.markwon:core:4.6.2")
-    implementation("io.noties.markwon:html:4.6.2")
     implementation("io.noties.markwon:linkify:4.6.2")
 
     // Testing
