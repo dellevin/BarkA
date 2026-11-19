@@ -163,13 +163,19 @@ class MessagesFragment : Fragment() {
     }
 
     private fun performDeleteMessage(message: Message) {
-        adapter.removeMessage(message.messageId)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                AccnotifyApp.getInstance().database.messageDao().delete(message.messageId)
-                context?.let { NotificationHelper.cancelNotification(it, message.messageId) }
-                context?.let { Toast.makeText(it, "消息已删除", Toast.LENGTH_SHORT).show() }
-            } catch (_: Exception) {
+                val deleted = AccnotifyApp.getInstance().database.messageDao().delete(message.messageId)
+                if (deleted > 0) {
+                    adapter.removeMessage(message.messageId)
+                    context?.let { NotificationHelper.cancelNotification(it, message.messageId) }
+                    context?.let { Toast.makeText(it, "消息已删除", Toast.LENGTH_SHORT).show() }
+                } else {
+                    filterMessages(binding.etSearch.text.toString())
+                    Toast.makeText(context, "消息不存在或已删除", Toast.LENGTH_SHORT).show()
+                }
+            } catch (error: Exception) {
+                android.util.Log.e("MessagesFragment", "Failed to delete message", error)
                 if (_binding != null) {
                     filterMessages(binding.etSearch.text.toString())
                     Toast.makeText(context, "删除失败，请重试", Toast.LENGTH_SHORT).show()
@@ -205,8 +211,8 @@ class MessagesFragment : Fragment() {
             sheet.dismiss()
         }
         sheetView.findViewById<TextView>(R.id.btnSheetConfirmAction).setOnClickListener {
-            sheet.dismiss()
             onConfirm()
+            sheet.dismiss()
         }
         sheet.show()
     }
@@ -310,16 +316,57 @@ class MessagesFragment : Fragment() {
     }
 
     private fun showClearOptions() {
-        val options = listOf("一小时之前", "今天之前", "昨天之前", "一个月之前")
+        val options = listOf(
+            "最近一小时", "今天", "昨天和今天", "最近一周", "最近一个月", "所有时间",
+            "一小时之前", "今天之前", "昨天之前", "一个月之前"
+        )
         showCompactPopup(anchor = binding.fabClear, options = options, selectedIndex = -1) { index ->
+            val now = System.currentTimeMillis()
             when (index) {
-                0 -> confirmDeleteOlderThan(
-                    System.currentTimeMillis() - 60L * 60 * 1000,
-                    "一小时"
-                )
-                1 -> confirmDeleteOlderThan(startOfDay(), "今天")
-                2 -> confirmDeleteOlderThan(startOfDay(-1), "昨天")
-                3 -> confirmDeleteOlderThan(oneMonthAgo(), "一个月")
+                0 -> confirmDeleteRange(now - 60L * 60 * 1000, "最近一小时")
+                1 -> confirmDeleteRange(startOfDay(), "今天")
+                2 -> confirmDeleteRange(startOfDay(-1), "昨天和今天")
+                3 -> confirmDeleteRange(now - 7L * 24 * 60 * 60 * 1000, "最近一周")
+                4 -> confirmDeleteRange(oneMonthAgo(), "最近一个月")
+                5 -> confirmDeleteAll()
+                6 -> confirmDeleteOlderThan(now - 60L * 60 * 1000, "一小时")
+                7 -> confirmDeleteOlderThan(startOfDay(), "今天")
+                8 -> confirmDeleteOlderThan(startOfDay(-1), "昨天")
+                9 -> confirmDeleteOlderThan(oneMonthAgo(), "一个月")
+            }
+        }
+    }
+
+    private fun confirmDeleteRange(start: Long, rangeLabel: String) {
+        showDeleteConfirmSheet(
+            title = "删除消息",
+            message = "确定删除“$rangeLabel”范围内的所有消息吗？此操作不可恢复。",
+            positiveText = "删除"
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val deleted = AccnotifyApp.getInstance().database.messageDao()
+                    .deleteBetween(start, System.currentTimeMillis() + 1)
+                context?.let {
+                    Toast.makeText(it, if (deleted > 0) "已删除 $deleted 条消息" else "没有符合条件的消息",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun confirmDeleteAll() {
+        showDeleteConfirmSheet(
+            title = "删除所有消息",
+            message = "确定删除所有历史消息吗？此操作不可恢复。",
+            positiveText = "全部删除"
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val deleted = AccnotifyApp.getInstance().database.messageDao().deleteAll()
+                context?.let {
+                    NotificationHelper.cancelAllMessageNotifications(it)
+                    Toast.makeText(it, if (deleted > 0) "已删除 $deleted 条消息" else "没有可删除的消息",
+                        Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -331,7 +378,11 @@ class MessagesFragment : Fragment() {
             positiveText = "删除"
         ) {
             viewLifecycleOwner.lifecycleScope.launch {
-                AccnotifyApp.getInstance().database.messageDao().deleteOlderThan(cutoff)
+                val deleted = AccnotifyApp.getInstance().database.messageDao().deleteOlderThan(cutoff)
+                context?.let {
+                    Toast.makeText(it, if (deleted > 0) "已删除 $deleted 条消息" else "没有符合条件的消息",
+                        Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

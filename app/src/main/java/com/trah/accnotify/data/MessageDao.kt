@@ -43,14 +43,17 @@ interface MessageDao {
     suspend fun markAllAsRead()
 
     @Query("DELETE FROM messages WHERE messageId = :messageId")
-    suspend fun delete(messageId: String)
+    suspend fun delete(messageId: String): Int
 
     @Query("DELETE FROM messages")
-    suspend fun deleteAll()
+    suspend fun deleteAll(): Int
 
     @Query("SELECT COUNT(*) FROM messages WHERE isRead = 0")
     fun getUnreadCount(): Flow<Int>
 
     @Query("DELETE FROM messages WHERE timestamp < :cutoffDate")
-    suspend fun deleteOlderThan(cutoffDate: Long)
+    suspend fun deleteOlderThan(cutoffDate: Long): Int
+
+    @Query("DELETE FROM messages WHERE timestamp >= :startDate AND timestamp < :endDate")
+    suspend fun deleteBetween(startDate: Long, endDate: Long): Int
 }
