@@ -4,8 +4,6 @@ import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
-import com.trah.accnotify.bark.BarkPrefs
 import com.trah.accnotify.data.AppDatabase
 import com.trah.accnotify.util.MessageNotificationChannels
 
@@ -17,9 +15,6 @@ class AccnotifyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-
-        // Restore the user's light/dark choice before any activity is created.
-        AppCompatDelegate.setDefaultNightMode(BarkPrefs(this).nightMode)
 
         // Initialize database
         database = AppDatabase.getInstance(this)

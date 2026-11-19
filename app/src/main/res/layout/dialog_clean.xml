@@ -10,6 +10,7 @@
     app:cardElevation="0dp"
     app:cardForegroundColor="@android:color/transparent"
     app:cardPreventCornerOverlap="false"
+    app:rippleColor="@android:color/transparent"
     app:cardUseCompatPadding="false"
     app:strokeColor="@color/bark_component_border"
     app:strokeWidth="1dp">

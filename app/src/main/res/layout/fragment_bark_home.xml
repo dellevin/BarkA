@@ -31,18 +31,6 @@
                 android:textSize="26sp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/btnThemeToggle"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="10dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="切换亮色/暗色"
-                android:focusable="true"
-                android:padding="6dp"
-                android:src="@drawable/ic_fluent_weather_moon" />
-
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -265,6 +253,25 @@
                         android:src="@drawable/ic_fluent_copy"
                         app:tint="@color/clean_primary" />
                 </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:layout_marginStart="14dp"
+                    android:background="@color/clean_divider" />
+
+                <TextView
+                    android:id="@+id/btnReset"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="14dp"
+                    android:text="重置注册"
+                    android:textColor="@color/status_error"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <!-- 使用示例：可复制、可直接发测试推送 -->
@@ -329,21 +336,6 @@
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/btnReset"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="14dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="8dp"
-                android:text="重置注册"
-                android:textColor="@color/status_error"
-                android:textSize="13sp" />
         </LinearLayout>
 
     </LinearLayout>

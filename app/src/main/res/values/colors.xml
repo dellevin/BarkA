@@ -18,7 +18,7 @@
     <color name="bark_component_ripple">#1A1A1A1A</color>
     <color name="bark_dock_indicator">#F0F0F0</color>
 
-    <!-- Light-mode message detail colors; dark colors are defined in values-night. -->
+    <!-- Message detail colors. -->
     <color name="message_detail_background">#FFFFFF</color>
     <color name="message_detail_text">#1C1C1E</color>
     <color name="message_detail_secondary">#636366</color>

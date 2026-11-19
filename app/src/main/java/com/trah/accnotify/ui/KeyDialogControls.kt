@@ -27,7 +27,7 @@ internal object KeyDialogControls {
         view.findViewById<TextView>(R.id.dialogTitle).text = title
         view.findViewById<TextView>(R.id.dialogMessage).text = message
         textActions(context, view)
-        val dialog = AlertDialog.Builder(context).setView(view).create()
+        val dialog = AlertDialog.Builder(context, R.style.Theme_Accnotify_CardDialog).setView(view).create()
         view.findViewById<TextView>(R.id.btnNegative).apply {
             text = "取消"
             setOnClickListener { dialog.dismiss() }
@@ -41,7 +41,6 @@ internal object KeyDialogControls {
         }
         dialog.show()
         compactWindow(context, dialog.window)
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 
     fun icon(context: Context, view: View, drawable: Int, label: String, onClick: () -> Unit) =

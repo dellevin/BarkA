@@ -17,6 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.trah.accnotify.AccnotifyApp
 import com.trah.accnotify.databinding.FragmentMessagesBinding
 import com.trah.accnotify.data.Message
@@ -44,9 +46,8 @@ class MessagesFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         selectedGroup = savedInstanceState?.getString("selected_message_group") ?: selectedGroup
         savedInstanceState?.let { state ->
-            timeFilter = TimeFilter.values()[state.getInt("time_filter_option", 0)]
-            customStart = state.getLong("time_filter_start", Long.MIN_VALUE).takeIf { it != Long.MIN_VALUE }
-            customEnd = state.getLong("time_filter_end", Long.MIN_VALUE).takeIf { it != Long.MIN_VALUE }
+            val savedFilter = state.getInt("time_filter_option", TimeFilter.ALL.ordinal)
+            timeFilter = TimeFilter.values().getOrElse(savedFilter) { TimeFilter.ALL }
         }
         _binding = FragmentMessagesBinding.inflate(inflater, container, false)
         return binding.root
@@ -56,7 +57,7 @@ class MessagesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         adapter = MessageAdapter(
             requireContext(),
-            onItemClick = { message -> showMessageDetailDialog(message) },
+            onItemClick = { message -> showMessageDetailSheet(message) },
             onDelete = { message -> deleteMessage(message) }
         )
         setupUI()
@@ -67,8 +68,6 @@ class MessagesFragment : Fragment() {
         super.onSaveInstanceState(outState)
         outState.putString("selected_message_group", selectedGroup)
         outState.putInt("time_filter_option", timeFilter.ordinal)
-        customStart?.let { outState.putLong("time_filter_start", it) }
-        customEnd?.let { outState.putLong("time_filter_end", it) }
     }
 
     override fun onDestroyView() {
@@ -80,12 +79,14 @@ class MessagesFragment : Fragment() {
     private var selectedGroup: String? = null
 
     private enum class TimeFilter(val label: String) {
-        ALL("时间筛选"), TODAY("今天"), DAYS_7("最近 7 天"), DAYS_30("最近 30 天"), CUSTOM("自定义时间")
+        RECENT_HOUR("最近一小时"),
+        TODAY("今天"),
+        YESTERDAY_AND_TODAY("昨天和今天"),
+        RECENT_WEEK("最近一周"),
+        RECENT_MONTH("最近一个月"),
+        ALL("所有时间")
     }
     private var timeFilter = TimeFilter.ALL
-    private var customStart: Long? = null
-    private var customEnd: Long? = null
-    private val rangeDayFormat = SimpleDateFormat("MM-dd", Locale.getDefault())
 
     fun showGroupMessages(group: String?) {
         selectedGroup = group?.trim()
@@ -102,54 +103,15 @@ class MessagesFragment : Fragment() {
 
     private fun showGroupFilter() {
         val groups = allMessages.map { it.group?.trim().orEmpty() }.distinct().sorted()
-        val options = listOf<String?>(null) + groups
-        val ctx = requireContext()
-        val density = resources.displayMetrics.density
-        val surface = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_bg)
-        val textColor = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_text)
-        val accent = textColor
-        val outline = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_control_border)
-        val popup = androidx.appcompat.widget.ListPopupWindow(ctx).apply {
-            anchorView = binding.btnGroupFilter
-            isModal = true
-            width = minOf((240 * density).toInt(), resources.displayMetrics.widthPixels - (32 * density).toInt())
-            setDropDownGravity(android.view.Gravity.END)
-            setInputMethodMode(android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED)
-            setBackgroundDrawable(com.google.android.material.shape.MaterialShapeDrawable(
-                com.google.android.material.shape.ShapeAppearanceModel.builder()
-                    .setAllCornerSizes(12 * density).build()).apply {
-                fillColor = android.content.res.ColorStateList.valueOf(surface)
-                setStroke(density, outline)
-            })
+        val values = listOf<String?>(null) + groups
+        val labels = values.map { it?.ifEmpty { "未分组" } ?: "全部分组" }
+        showCompactPopup(
+            anchor = binding.btnGroupFilter,
+            options = labels,
+            selectedIndex = values.indexOf(selectedGroup)
+        ) { index ->
+            showGroupMessages(values[index])
         }
-        popup.setAdapter(object : android.widget.BaseAdapter() {
-            override fun getCount() = options.size
-            override fun getItem(position: Int) = options[position]
-            override fun getItemId(position: Int) = position.toLong()
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val row = convertView as? com.google.android.material.radiobutton.MaterialRadioButton
-                    ?: com.google.android.material.radiobutton.MaterialRadioButton(ctx).apply {
-                        minHeight = resources.getDimensionPixelSize(R.dimen.action_touch_size)
-                        gravity = android.view.Gravity.CENTER_VERTICAL
-                        setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimension(com.trah.accnotify.R.dimen.text_body))
-                        setPadding((12 * density).toInt(), 0, (12 * density).toInt(), 0)
-                        isClickable = false
-                        isFocusable = false
-                        setUseMaterialThemeColors(true)
-                    }
-                val group = options[position]
-                row.text = group?.ifEmpty { "未分组" } ?: "全部分组"
-                row.isChecked = selectedGroup == group
-                row.setTextColor(if (row.isChecked) accent else textColor)
-                return row
-            }
-        })
-        popup.setOnItemClickListener { _, _, position, _ ->
-            showGroupMessages(options[position])
-            popup.dismiss()
-        }
-        popup.show()
-        popup.setSelection(options.indexOf(selectedGroup))
     }
     
     /**
@@ -159,7 +121,7 @@ class MessagesFragment : Fragment() {
         // 如果消息列表已加载，直接查找并显示
         val message = allMessages.find { it.messageId == messageId }
         if (message != null) {
-            showMessageDetailDialog(message)
+            showMessageDetailSheet(message)
         } else {
             // 消息列表还未加载，保存ID等待加载后显示
             pendingMessageId = messageId
@@ -191,6 +153,16 @@ class MessagesFragment : Fragment() {
 
     private fun deleteMessage(message: Message) {
         adapter.closeReveal()
+        showDeleteConfirmSheet(
+            title = "删除消息",
+            message = "确定删除这条消息吗？此操作不可恢复。",
+            positiveText = "删除"
+        ) {
+            performDeleteMessage(message)
+        }
+    }
+
+    private fun performDeleteMessage(message: Message) {
         adapter.removeMessage(message.messageId)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -204,6 +176,39 @@ class MessagesFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showDeleteConfirmSheet(
+        title: String,
+        message: String,
+        positiveText: String,
+        onConfirm: () -> Unit
+    ) {
+        val sheetView = layoutInflater.inflate(R.layout.sheet_delete_confirm, null)
+        sheetView.findViewById<TextView>(R.id.sheetConfirmTitle).text = title
+        sheetView.findViewById<TextView>(R.id.sheetConfirmMessage).text = message
+        sheetView.findViewById<TextView>(R.id.btnSheetConfirmAction).text = positiveText
+
+        val sheet = BottomSheetDialog(requireContext())
+        sheet.setContentView(sheetView)
+        sheet.behavior.skipCollapsed = true
+        sheet.window?.apply {
+            addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            setDimAmount(0.45f)
+        }
+        sheet.setOnShowListener {
+            sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            sheet.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+        sheetView.findViewById<TextView>(R.id.btnSheetConfirmCancel).setOnClickListener {
+            sheet.dismiss()
+        }
+        sheetView.findViewById<TextView>(R.id.btnSheetConfirmAction).setOnClickListener {
+            sheet.dismiss()
+            onConfirm()
+        }
+        sheet.show()
     }
 
     private fun setupSwipeDelete() {
@@ -263,160 +268,96 @@ class MessagesFragment : Fragment() {
         })
     }
 
+    private fun startOfDay(dayOffset: Int = 0): Long = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+        add(Calendar.DAY_OF_MONTH, dayOffset)
+    }.timeInMillis
+
+    private fun oneMonthAgo(): Long = Calendar.getInstance().apply {
+        add(Calendar.MONTH, -1)
+    }.timeInMillis
+
     private fun currentTimeRange(): Pair<Long?, Long?> {
         val now = System.currentTimeMillis()
         return when (timeFilter) {
+            TimeFilter.RECENT_HOUR -> now - 60L * 60 * 1000 to null
+            TimeFilter.TODAY -> startOfDay() to null
+            TimeFilter.YESTERDAY_AND_TODAY -> startOfDay(-1) to null
+            TimeFilter.RECENT_WEEK -> now - 7L * 24 * 60 * 60 * 1000 to null
+            TimeFilter.RECENT_MONTH -> oneMonthAgo() to null
             TimeFilter.ALL -> null to null
-            TimeFilter.TODAY -> {
-                Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis to null
-            }
-            TimeFilter.DAYS_7 -> now - 7L * 24 * 60 * 60 * 1000 to null
-            TimeFilter.DAYS_30 -> now - 30L * 24 * 60 * 60 * 1000 to null
-            TimeFilter.CUSTOM -> customStart to customEnd
         }
     }
 
     private fun updateTimeFilterLabel() {
-        binding.btnTimeFilter.text = if (timeFilter == TimeFilter.CUSTOM && customStart != null) {
-            val end = customEnd
-            if (end != null) {
-                "${rangeDayFormat.format(java.util.Date(customStart!!))}~${rangeDayFormat.format(java.util.Date(end - 1))}"
-            } else {
-                rangeDayFormat.format(java.util.Date(customStart!!)) + " 起"
-            }
-        } else {
-            timeFilter.label
-        }
+        binding.btnTimeFilter.text = timeFilter.label
     }
 
     private fun showTimeFilter() {
         val options = TimeFilter.values().map { it.label }
-        showRadioPopup(
+        showCompactPopup(
             anchor = binding.btnTimeFilter,
             options = options,
             selectedIndex = timeFilter.ordinal
         ) { index ->
-            val chosen = TimeFilter.values()[index]
-            if (chosen == TimeFilter.CUSTOM) {
-                pickCustomRange()
-            } else {
-                timeFilter = chosen
-                updateTimeFilterLabel()
-                filterMessages(binding.etSearch.text.toString())
-            }
+            timeFilter = TimeFilter.values()[index]
+            updateTimeFilterLabel()
+            filterMessages(binding.etSearch.text.toString())
         }
-    }
-
-    private fun pickCustomRange() {
-        val calendar = Calendar.getInstance()
-        android.app.DatePickerDialog(
-            requireContext(),
-            R.style.Theme_Accnotify_AppDialog,
-            { _, startYear, startMonth, startDay ->
-                val start = Calendar.getInstance().apply {
-                    set(startYear, startMonth, startDay, 0, 0, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-                android.app.DatePickerDialog(
-                    requireContext(),
-                    R.style.Theme_Accnotify_AppDialog,
-                    { _, endYear, endMonth, endDay ->
-                        val endExclusive = Calendar.getInstance().apply {
-                            set(endYear, endMonth, endDay, 0, 0, 0)
-                            set(Calendar.MILLISECOND, 0)
-                            add(Calendar.DAY_OF_MONTH, 1)
-                        }.timeInMillis
-                        if (endExclusive <= start) {
-                            Toast.makeText(requireContext(), "结束日期不能早于开始日期", Toast.LENGTH_SHORT).show()
-                            return@DatePickerDialog
-                        }
-                        timeFilter = TimeFilter.CUSTOM
-                        customStart = start
-                        customEnd = endExclusive
-                        updateTimeFilterLabel()
-                        filterMessages(binding.etSearch.text.toString())
-                    },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-                ).apply { setTitle("选择结束日期") }.show()
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).apply { setTitle("选择开始日期") }.show()
     }
 
     private fun showClearOptions() {
-        val options = listOf("清空全部消息", "删除 7 天前", "删除 30 天前", "自定义时间…")
-        showRadioPopup(anchor = binding.fabClear, options = options, selectedIndex = -1) { index ->
+        val options = listOf("一小时之前", "今天之前", "昨天之前", "一个月之前")
+        showCompactPopup(anchor = binding.fabClear, options = options, selectedIndex = -1) { index ->
             when (index) {
-                0 -> showClearConfirmDialog()
-                1 -> confirmDeleteOlderThan(System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000, "7 天前")
-                2 -> confirmDeleteOlderThan(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000, "30 天前")
-                3 -> pickClearCutoff()
+                0 -> confirmDeleteOlderThan(
+                    System.currentTimeMillis() - 60L * 60 * 1000,
+                    "一小时"
+                )
+                1 -> confirmDeleteOlderThan(startOfDay(), "今天")
+                2 -> confirmDeleteOlderThan(startOfDay(-1), "昨天")
+                3 -> confirmDeleteOlderThan(oneMonthAgo(), "一个月")
             }
         }
     }
 
-    private fun pickClearCutoff() {
-        val calendar = Calendar.getInstance()
-        android.app.DatePickerDialog(
-            requireContext(),
-            R.style.Theme_Accnotify_AppDialog,
-            { _, year, month, day ->
-                val cutoff = Calendar.getInstance().apply {
-                    set(year, month, day, 0, 0, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
-                val dateText = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(java.util.Date(cutoff))
-                confirmDeleteOlderThan(cutoff, dateText)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).apply { setTitle("删除该日期之前的消息") }.show()
-    }
-
     private fun confirmDeleteOlderThan(cutoff: Long, cutoffLabel: String) {
-        showCleanDialog(
-            title = "清空消息",
+        showDeleteConfirmSheet(
+            title = "删除消息",
             message = "确定删除 $cutoffLabel 之前的所有消息吗？此操作不可恢复。",
-            positiveText = "删除",
-            onPositive = {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    AccnotifyApp.getInstance().database.messageDao().deleteOlderThan(cutoff)
-                }
+            positiveText = "删除"
+        ) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                AccnotifyApp.getInstance().database.messageDao().deleteOlderThan(cutoff)
             }
-        )
+        }
     }
 
-    /**
-     * Shared single-choice popup used by the filter chips and the clear FAB.
-     */
-    private fun showRadioPopup(anchor: View, options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
+    /** Compact anchored menu shared by group, time, and delete actions. */
+    private fun showCompactPopup(anchor: View, options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
         val ctx = requireContext()
         val density = resources.displayMetrics.density
+        val rowHeight = (40 * density).toInt()
         val surface = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_bg)
         val textColor = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_text)
-        val accent = textColor
-        val outline = androidx.core.content.ContextCompat.getColor(ctx, R.color.bark_component_control_border)
+        val outline = androidx.core.content.ContextCompat.getColor(ctx, R.color.clean_divider)
         val popup = androidx.appcompat.widget.ListPopupWindow(ctx).apply {
             anchorView = anchor
             isModal = true
-            width = minOf((240 * density).toInt(), resources.displayMetrics.widthPixels - (32 * density).toInt())
+            width = minOf((196 * density).toInt(), resources.displayMetrics.widthPixels - (32 * density).toInt())
+            setHeight(minOf(options.size * rowHeight, (240 * density).toInt()))
             setDropDownGravity(android.view.Gravity.END)
+            setVerticalOffset((4 * density).toInt())
             setInputMethodMode(android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED)
+            setListSelector(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
             setBackgroundDrawable(com.google.android.material.shape.MaterialShapeDrawable(
                 com.google.android.material.shape.ShapeAppearanceModel.builder()
                     .setAllCornerSizes(12 * density).build()).apply {
                 fillColor = android.content.res.ColorStateList.valueOf(surface)
-                setStroke(density, outline)
+                setStroke(0.5f * density, outline)
             })
         }
         popup.setAdapter(object : android.widget.BaseAdapter() {
@@ -424,19 +365,53 @@ class MessagesFragment : Fragment() {
             override fun getItem(position: Int) = options[position]
             override fun getItemId(position: Int) = position.toLong()
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val row = convertView as? com.google.android.material.radiobutton.MaterialRadioButton
-                    ?: com.google.android.material.radiobutton.MaterialRadioButton(ctx).apply {
-                        minHeight = resources.getDimensionPixelSize(R.dimen.action_touch_size)
+                val row = convertView as? FrameLayout ?: FrameLayout(ctx).apply {
+                    layoutParams = android.widget.AbsListView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        rowHeight
+                    )
+                    setPadding((4 * density).toInt(), (2 * density).toInt(),
+                        (4 * density).toInt(), (2 * density).toInt())
+                    addView(android.widget.LinearLayout(ctx).apply {
+                        id = android.R.id.content
                         gravity = android.view.Gravity.CENTER_VERTICAL
-                        setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_body))
-                        setPadding((12 * density).toInt(), 0, (12 * density).toInt(), 0)
-                        isClickable = false
-                        isFocusable = false
-                        setUseMaterialThemeColors(true)
-                    }
-                row.text = options[position]
-                row.isChecked = position == selectedIndex
-                row.setTextColor(if (row.isChecked) accent else textColor)
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        setPadding((10 * density).toInt(), 0, (6 * density).toInt(), 0)
+                        addView(TextView(ctx).apply {
+                            id = android.R.id.text1
+                            layoutParams = android.widget.LinearLayout.LayoutParams(
+                                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f
+                            )
+                            ellipsize = android.text.TextUtils.TruncateAt.END
+                            gravity = android.view.Gravity.CENTER_VERTICAL
+                            maxLines = 1
+                            setTextColor(textColor)
+                            setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,
+                                resources.getDimension(R.dimen.text_body))
+                        })
+                        addView(TextView(ctx).apply {
+                            id = android.R.id.checkbox
+                            layoutParams = android.widget.LinearLayout.LayoutParams(
+                                (24 * density).toInt(), ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                            gravity = android.view.Gravity.CENTER
+                            text = "✓"
+                            setTextColor(textColor)
+                            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+                            setTypeface(typeface, android.graphics.Typeface.BOLD)
+                        })
+                    }, FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    ))
+                }
+                val selected = position == selectedIndex
+                row.findViewById<TextView>(android.R.id.text1).text = options[position]
+                row.findViewById<TextView>(android.R.id.checkbox).visibility =
+                    if (selected) View.VISIBLE else View.INVISIBLE
+                row.findViewById<View>(android.R.id.content).setBackgroundResource(
+                    if (selected) R.drawable.bg_filter_popup_selected else android.R.color.transparent
+                )
                 return row
             }
         })
@@ -445,6 +420,7 @@ class MessagesFragment : Fragment() {
             popup.dismiss()
         }
         popup.show()
+        popup.listView?.divider = null
         if (selectedIndex >= 0) popup.setSelection(selectedIndex)
     }
 
@@ -483,7 +459,7 @@ class MessagesFragment : Fragment() {
                         val message = messages.find { it.messageId == msgId }
                         if (message != null) {
                             pendingMessageId = null
-                            showMessageDetailDialog(message)
+                            showMessageDetailSheet(message)
                         }
                     }
                 }
@@ -491,10 +467,10 @@ class MessagesFragment : Fragment() {
     }
 
     /**
-     * 显示消息详情对话框
+     * 显示消息详情底部面板
      */
-    private fun showMessageDetailDialog(message: Message) {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_message_detail, null)
+    private fun showMessageDetailSheet(message: Message) {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.sheet_message_detail, null)
         val tvTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
         val tvTime = dialogView.findViewById<TextView>(R.id.dialogTime)
         val tvBody = dialogView.findViewById<TextView>(R.id.dialogBody)
@@ -755,11 +731,18 @@ class MessagesFragment : Fragment() {
             }
         }
 
-        val alertDialog = AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-            .create()
-
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        val sheet = BottomSheetDialog(requireContext())
+        sheet.setContentView(dialogView)
+        sheet.behavior.skipCollapsed = true
+        sheet.window?.apply {
+            addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            setDimAmount(0.45f)
+        }
+        sheet.setOnShowListener {
+            sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            sheet.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
 
         btnCopy.setOnClickListener {
             val bodyToCopy = message.body.orEmpty()
@@ -769,11 +752,10 @@ class MessagesFragment : Fragment() {
         }
 
         btnClose.setOnClickListener {
-            alertDialog.dismiss()
+            sheet.dismiss()
         }
 
-        alertDialog.show()
-        KeyDialogControls.compactWindow(requireContext(), alertDialog.window)
+        sheet.show()
     }
 
     /**
@@ -806,7 +788,7 @@ class MessagesFragment : Fragment() {
     }
 
     /**
-     * 格式化消息正文用于详情对话框显示（仅格式化内容，不含原始数据部分）
+     * 格式化消息正文用于详情底部面板显示（仅格式化内容，不含原始数据部分）
      */
     private fun formatMessageBodyForDisplay(body: String): String {
         val trimmed = body.trim()
@@ -967,20 +949,6 @@ class MessagesFragment : Fragment() {
         clipboard.setPrimaryClip(clip)
     }
 
-    private fun showClearConfirmDialog() {
-        showCleanDialog(
-            title = "清空消息",
-            message = "确定清空所有消息记录吗？此操作不可恢复。",
-            positiveText = "清空",
-            onPositive = {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    AccnotifyApp.getInstance().database.messageDao().deleteAll()
-                    context?.let { NotificationHelper.cancelAllMessageNotifications(it) }
-                }
-            }
-        )
-    }
-
     private fun showCleanDialog(
         title: String,
         message: String,
@@ -1012,11 +980,9 @@ class MessagesFragment : Fragment() {
             customContainer.visibility = View.VISIBLE
         }
 
-        val alertDialog = AlertDialog.Builder(requireContext())
+        val alertDialog = AlertDialog.Builder(requireContext(), R.style.Theme_Accnotify_CardDialog)
             .setView(dialogView)
             .create()
-
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         btnPositive.setOnClickListener {
             onPositive?.invoke()

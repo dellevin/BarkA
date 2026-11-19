@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Clean Fluent Theme -->
-    <style name="Theme.Accnotify" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Accnotify" parent="Theme.Material3.Light.NoActionBar">
         <!-- Shared controls also apply to programmatically created views. -->
         <item name="android:textViewStyle">@style/Widget.Accnotify.Text</item>
         <item name="editTextStyle">@style/Widget.Accnotify.Input</item>
@@ -53,7 +53,7 @@
     </style>
 
     <!-- Isolated palette for app-owned native dialogs and date pickers. -->
-    <style name="Theme.Accnotify.AppDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+    <style name="Theme.Accnotify.AppDialog" parent="Theme.Material3.Light.Dialog.Alert">
         <item name="android:windowBackground">@drawable/bg_app_dialog_surface</item>
         <item name="android:colorBackground">@color/bark_component_bg</item>
         <item name="android:colorBackgroundFloating">@color/bark_component_bg</item>
@@ -63,10 +63,24 @@
         <item name="colorPrimary">@color/bark_component_text</item>
         <item name="colorOnPrimary">@color/bark_component_bg</item>
         <item name="colorSurface">@color/bark_component_bg</item>
+        <!-- Force every Material3 surface tier to the same pure surface (white/black) so date pickers and native dialogs never show gray panels. -->
+        <item name="colorSurfaceVariant">@color/bark_component_bg</item>
+        <item name="colorSurfaceDim">@color/bark_component_bg</item>
+        <item name="colorSurfaceBright">@color/bark_component_bg</item>
+        <item name="colorSurfaceContainerLowest">@color/bark_component_bg</item>
+        <item name="colorSurfaceContainerLow">@color/bark_component_bg</item>
+        <item name="colorSurfaceContainer">@color/bark_component_bg</item>
+        <item name="colorSurfaceContainerHigh">@color/bark_component_bg</item>
+        <item name="colorSurfaceContainerHighest">@color/bark_component_bg</item>
         <item name="colorOnSurface">@color/bark_component_text</item>
         <item name="colorOnSurfaceVariant">@color/bark_component_text_secondary</item>
         <item name="colorOutline">@color/bark_component_control_border</item>
         <item name="colorOutlineVariant">@color/bark_component_control_border</item>
+    </style>
+
+    <!-- Custom white-card dialogs: transparent window so only the in-layout card is visible, while the default scrim still dims the screen behind. -->
+    <style name="Theme.Accnotify.CardDialog" parent="Theme.Accnotify.AppDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
     <!-- mooknote dock active indicator: 62x46 rounded-22 pill, surfaceContainerHighest -->

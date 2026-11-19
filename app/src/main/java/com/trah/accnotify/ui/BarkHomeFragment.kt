@@ -1,24 +1,22 @@
 package com.trah.accnotify.ui
 
-import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.trah.accnotify.R
 import com.trah.accnotify.bark.BarkPrefs
 import com.trah.accnotify.bark.BarkPushService
@@ -72,11 +70,9 @@ class BarkHomeFragment : Fragment() {
         binding.btnRegister.setOnClickListener { register() }
         binding.btnCopyKey.setOnClickListener { copyDeviceKey() }
         binding.btnReset.setOnClickListener { resetRegistration() }
-        binding.btnEditServer.setOnClickListener { showEditServerDialog() }
+        binding.btnEditServer.setOnClickListener { showEditServerSheet() }
         binding.btnCopyExample.setOnClickListener { copyExampleUrl() }
         binding.btnTestPush.setOnClickListener { sendTestPush() }
-        updateThemeToggleIcon()
-        binding.btnThemeToggle.setOnClickListener { toggleNightMode() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -141,60 +137,61 @@ class BarkHomeFragment : Fragment() {
         return "$base/$key/$title/$body?group=BarkA"
     }
 
-    private fun showEditServerDialog() {
+    private fun showEditServerSheet() {
         val context = requireContext()
-        val density = resources.displayMetrics.density
-        val input = EditText(context).apply {
+        val sheetView = layoutInflater.inflate(R.layout.sheet_edit_server, null)
+        val input = sheetView.findViewById<EditText>(R.id.etSheetServerUrl).apply {
             setText(prefs.serverUrl)
-            inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI
-            maxLines = 1
-            hint = "https://bark.example.com"
-            setBackgroundResource(R.drawable.bg_clean_input)
-            setPadding(
-                (14 * density).toInt(), (12 * density).toInt(),
-                (14 * density).toInt(), (12 * density).toInt()
-            )
+            setSelection(text?.length ?: 0)
         }
-        val container = FrameLayout(context).apply {
-            val pad = (20 * density).toInt()
-            setPadding(pad, (8 * density).toInt(), pad, 0)
-            addView(input)
+        val error = sheetView.findViewById<TextView>(R.id.tvSheetError)
+        val save = sheetView.findViewById<TextView>(R.id.btnSheetSave)
+        val sheet = BottomSheetDialog(context)
+
+        sheet.setContentView(sheetView)
+        sheet.behavior.skipCollapsed = true
+        sheet.window?.apply {
+            addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            setDimAmount(0.45f)
+            setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_clean, null)
-        dialogView.findViewById<TextView>(R.id.dialogTitle).text = "修改服务器地址"
-        dialogView.findViewById<TextView>(R.id.dialogMessage).apply {
-            text = "更换地址后将向新服务器重新注册设备。"
-            visibility = View.VISIBLE
+        sheet.setOnShowListener {
+            sheet.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            sheet.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
-        dialogView.findViewById<TextView>(R.id.btnPositive).text = "保存"
-        dialogView.findViewById<TextView>(R.id.btnNegative).apply {
-            text = "取消"
-            visibility = View.VISIBLE
-        }
-        dialogView.findViewById<FrameLayout>(R.id.dialogCustomContainer).apply {
-            addView(container)
-            visibility = View.VISIBLE
-        }
-        val dialog = AlertDialog.Builder(context)
-            .setView(dialogView)
-            .create()
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogView.findViewById<TextView>(R.id.btnPositive).setOnClickListener {
+
+        fun saveServer() {
             val newUrl = input.text?.toString().orEmpty().trim().trimEnd('/')
-            if (newUrl.isEmpty()) {
-                Toast.makeText(context, "请输入服务器地址", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            val message = when {
+                newUrl.isEmpty() -> "请输入服务器地址"
+                !newUrl.startsWith("http://") && !newUrl.startsWith("https://") ->
+                    "地址必须以 http:// 或 https:// 开头"
+                else -> null
             }
-            if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
-                Toast.makeText(context, "地址必须以 http:// 或 https:// 开头", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if (message != null) {
+                error.text = message
+                error.visibility = View.VISIBLE
+                input.requestFocus()
+                return
             }
-            dialog.dismiss()
+            sheet.dismiss()
             reRegister(newUrl)
         }
-        dialogView.findViewById<TextView>(R.id.btnNegative).setOnClickListener { dialog.dismiss() }
-        dialog.show()
-        KeyDialogControls.compactWindow(context, dialog.window)
+
+        save.setOnClickListener { saveServer() }
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                saveServer()
+                true
+            } else {
+                false
+            }
+        }
+        sheetView.findViewById<TextView>(R.id.btnSheetCancel).setOnClickListener {
+            sheet.dismiss()
+        }
+        sheet.show()
     }
 
     private fun reRegister(serverUrl: String) {
@@ -238,31 +235,6 @@ class BarkHomeFragment : Fragment() {
                     Toast.makeText(requireContext(), "发送失败：${it.message}", Toast.LENGTH_LONG).show()
                 }
         }
-    }
-
-    private fun isNightMode(): Boolean =
-        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
-
-    /** Moon in light mode (tap to go dark), sun in dark mode (tap to go light). */
-    private fun updateThemeToggleIcon() {
-        binding.btnThemeToggle.setImageResource(
-            if (isNightMode()) {
-                R.drawable.ic_fluent_weather_sunny
-            } else {
-                R.drawable.ic_fluent_weather_moon
-            }
-        )
-    }
-
-    private fun toggleNightMode() {
-        val mode = if (isNightMode()) {
-            AppCompatDelegate.MODE_NIGHT_NO
-        } else {
-            AppCompatDelegate.MODE_NIGHT_YES
-        }
-        prefs.nightMode = mode
-        AppCompatDelegate.setDefaultNightMode(mode)
     }
 
     private fun register() {
