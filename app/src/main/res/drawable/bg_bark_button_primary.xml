@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome filled button: black in light mode, white in dark mode. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#338E8E93">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/clean_primary" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>

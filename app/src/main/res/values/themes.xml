@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clean Fluent Theme -->
+    <style name="Theme.Accnotify" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Shared controls also apply to programmatically created views. -->
+        <item name="android:textViewStyle">@style/Widget.Accnotify.Text</item>
+        <item name="editTextStyle">@style/Widget.Accnotify.Input</item>
+        <item name="android:editTextStyle">@style/Widget.Accnotify.Input</item>
+        <item name="radioButtonStyle">@style/Widget.Accnotify.RadioButton</item>
+        <item name="android:radioButtonStyle">@style/Widget.Accnotify.RadioButton</item>
+        <item name="checkboxStyle">@style/Widget.Accnotify.CheckBox</item>
+        <!-- Color Scheme -->
+        <item name="colorPrimary">@color/clean_primary</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <!-- Monochrome container roles so the FAB and nav indicator stay black/white. -->
+        <item name="colorPrimaryContainer">@color/clean_primary</item>
+        <item name="colorOnPrimaryContainer">@color/bark_on_primary</item>
+        <item name="colorSecondaryContainer">@color/clean_divider</item>
+        
+        <item name="android:colorBackground">@color/clean_bg</item>
+        <item name="colorSurface">@color/clean_card_bg</item>
+        <item name="colorSurfaceVariant">@color/theme_neutral_surface_variant</item>
+        <item name="colorSurfaceDim">@color/theme_neutral_surface_dim</item>
+        <item name="colorSurfaceBright">@color/theme_neutral_surface_bright</item>
+        <item name="colorSurfaceContainerLowest">@color/theme_neutral_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/theme_neutral_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/theme_neutral_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/theme_neutral_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/theme_neutral_surface_container_highest</item>
+        <item name="colorSurfaceInverse">@color/theme_neutral_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/theme_neutral_inverse_on_surface</item>
+        <item name="colorOnSurface">@color/clean_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/clean_text_secondary</item>
+        <item name="android:colorForeground">@color/clean_text_primary</item>
+        <item name="android:windowBackground">@color/clean_bg</item>
+        <item name="colorOnBackground">@color/clean_text_primary</item>
+        <item name="colorOutline">@color/input_stroke</item>
+        <item name="colorOutlineVariant">@color/clean_divider</item>
+        <item name="actionButtonBackgroundColor">?attr/colorPrimary</item>
+        <item name="actionButtonTextColor">?attr/colorOnPrimary</item>
+        <item name="actionButtonStrokeColor">@android:color/transparent</item>
+        <item name="inputBackgroundColor">@color/input_bg</item>
+        <item name="messageDetailTitleColor">@color/theme_white_message_title</item>
+        
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@color/clean_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Navigation Bar -->
+        <item name="android:navigationBarColor">@color/clean_bg</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- Toolbar Style -->
+    <style name="Theme.Accnotify.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/surface</item>
+        <item name="titleTextColor">@color/text_primary</item>
+    </style>
+
+    <!-- iOS-Style Bottom Navigation -->
+    <style name="Theme.Accnotify.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/bottom_nav_background</item>
+        <item name="itemIconSize">@dimen/icon_size</item>
+        <item name="itemIconTint">@color/bottom_nav_selector</item>
+        <item name="itemTextColor">@color/bottom_nav_selector</item>
+        <item name="itemActiveIndicatorStyle">@style/App.BottomNavIndicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">8dp</item>
+    </style>
+
+    <!-- Candy-style Pill Indicator for Bottom Navigation -->
+    <style name="App.BottomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:width">64dp</item>
+        <item name="android:height">36dp</item>
+        <item name="android:color">?attr/colorSecondaryContainer</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.BottomNavIndicator</item>
+    </style>
+
+    <style name="ShapeAppearance.BottomNavIndicator" parent="ShapeAppearance.Material3.Corner.Full">
+        <item name="cornerSize">18dp</item>
+    </style>
+
+</resources>
