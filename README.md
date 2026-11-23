@@ -30,7 +30,7 @@ BarkA 是一款极简的 Android 推送客户端，用法与 [Bark](https://gith
 
 ## 服务端部署
 
-服务端是 bark-server 的分支，不在本仓库中，部署方式与上游一致：
+服务端是 bark-server 的分支，不在本仓库中，可以去[仓库](https://github.com/dellevin/bark-server)查看，部署方式与上游一致：
 
 - 使用项目提供的 Dockerfile 构建镜像（需要 Go 1.27+）
 - 数据存储在 bbolt 数据库文件中，离线队列单独存放在 `data/queue.db`
@@ -38,7 +38,7 @@ BarkA 是一款极简的 Android 推送客户端，用法与 [Bark](https://gith
 
 ## 安装与注册
 
-支持 Android 8.0（API 26）及以上。从 [发布页面](https://github.com/trah01/Accnotify/releases) 下载 APK 安装，或自行构建。
+支持 Android 8.0（API 26）及以上。从 [发布页面 ](https://github.com/dellevin/BarkA/releases)下载 APK 安装，或自行构建。
 
 1. 打开 BarkA，在首页输入服务器地址（必须以 `http://` 或 `https://` 开头），点击「注册设备」。
 2. 注册成功后首页显示服务器地址、设备 Key 和连接状态；服务器地址可随时点击修改，修改后会向新服务器重新注册。
@@ -146,4 +146,4 @@ gradle :app:assembleDebug
 
 ## 反馈
 
-遇到问题可提交 [Issue](https://github.com/trah01/Accnotify/issues)，附上设备型号、Android 版本、App 版本和复现步骤。截图与日志中请隐藏设备 Key 和推送链接。
+遇到问题可提交 [Issue](https://github.com/dellevin/BarkA/issues)，附上设备型号、Android 版本、App 版本和复现步骤。截图与日志中请隐藏设备 Key 和推送链接。
