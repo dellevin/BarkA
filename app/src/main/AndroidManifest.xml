@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <permission
-        android:name="com.trah.accnotify.permission.BIND_SYSTEM_BRIDGE"
+        android:name="top.iletter.barka.permission.BIND_SYSTEM_BRIDGE"
         android:protectionLevel="signature" />
 
     <application
@@ -58,7 +58,7 @@
         <service
             android:name=".bridge.SystemServerBridgeService"
             android:exported="true"
-            android:permission="com.trah.accnotify.permission.BIND_SYSTEM_BRIDGE" />
+            android:permission="top.iletter.barka.permission.BIND_SYSTEM_BRIDGE" />
 
         <!-- Boot Receiver -->
         <receiver

@@ -22,8 +22,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public final class SystemServerHook implements IXposedHookLoadPackage {
     private static final String TAG = "AccnotifyXposed";
-    private static final String APP_PACKAGE = "com.trah.accnotify";
-    private static final String BRIDGE_CLASS = APP_PACKAGE + ".bridge.SystemServerBridgeService";
+    private static final String APP_PACKAGE = "top.iletter.barka";
+    private static final String BRIDGE_CLASS = "com.trah.accnotify.bridge.SystemServerBridgeService";
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     @Override

@@ -23,7 +23,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.trah.accnotify"
+        applicationId = "top.iletter.barka"
         minSdk = 26
         targetSdk = 34
         versionCode = clientVersionCode
